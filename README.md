@@ -3,7 +3,12 @@
 A clean, offline-first Android bill splitting app built with Kotlin and Jetpack Compose.
 
 ## Screenshots
-<!-- Add screenshots here after taking them -->
+<p float="left">
+    <img src="app/screenshots/sc1.png" height="766" width="473" alt="Sc1">
+    <img src="app/screenshots/sc2.png" height="763" width="476" alt="Sc2">
+    <img src="app/screenshots/sc3.png" height="763" width="462" alt="Sc2">
+    <img src="app/screenshots/sc4.png" height="768" width="467" alt="Sc2">
+</p>
 
 ## Features
 - Add bills with named participants
