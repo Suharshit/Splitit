@@ -16,6 +16,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.splitit.data.Bill
 import com.example.splitit.viewmodel.BillViewModel
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +39,8 @@ fun EditBillScreen(
     var titleError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
     var peopleError by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
         topBar = {
@@ -68,9 +73,14 @@ fun EditBillScreen(
                     label = { Text("Bill title") },
                     isError = titleError,
                     supportingText = { if (titleError) Text("Title cannot be empty") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),   // ← add this
                     singleLine = true
                 )
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
             }
 
             item {
