@@ -8,14 +8,14 @@ A prioritized list of features to evolve SplitIt from an MVP into a production-r
 
 These make the app feel professional and fix obvious gaps in the current MVP.
 
-- [ ] **Edit existing bills** — allow users to update title, amount, or people after saving
-- [ ] **Undo delete** — show a Snackbar with "Undo" after swipe-to-delete instead of instant removal
-- [ ] **Input keyboard auto-focus** — automatically open keyboard when Add Bill screen loads
-- [ ] **Decimal amount formatting** — format the total amount field with commas as user types (e.g. 23,000.00)
-- [ ] **Empty name fallback** — if a person's name field is left blank, auto-fill as "Person N" instead of rejecting
-- [ ] **Bill count badge** — show total number of bills and total money tracked on the list screen header
-- [ ] **Scroll to top on add** — after saving a bill, scroll the list to the top to show the new entry
-- [ ] **Landscape layout support** — ensure all screens are usable in landscape orientation without overflow
+- [x] **Edit existing bills** — allow users to update title, amount, or people after saving
+- [x] **Undo delete** — show a Snackbar with "Undo" after swipe-to-delete instead of instant removal
+- [x] **Input keyboard auto-focus** — automatically open keyboard when Add Bill screen loads
+- [x] **Decimal amount formatting** — format the total amount field with commas as user types (e.g. 23,000.00)
+- [x] **Empty name fallback** — if a person's name field is left blank, auto-fill as "Person N" instead of rejecting
+- [x] **Bill count badge** — show total number of bills and total money tracked on the list screen header
+- [x] **Scroll to top on add** — after saving a bill, scroll the list to the top to show the new entry
+- [x] **Landscape layout support** — ensure all screens are usable in landscape orientation without overflow
 
 ---
 
