@@ -33,6 +33,18 @@ fun AppNavigation() {
                 BillDetailScreen(
                     bill = bill,
                     viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onEditBill = { navController.navigate("edit_bill/${bill.id}") }
+                )
+            }
+        }
+        composable("edit_bill/{billId}") { backStackEntry ->
+            val billId = backStackEntry.arguments?.getString("billId")?.toLongOrNull()
+            val bill = viewModel.bills.value.find { it.id == billId }
+            if (bill != null) {
+                EditBillScreen(
+                    bill = bill,
+                    viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

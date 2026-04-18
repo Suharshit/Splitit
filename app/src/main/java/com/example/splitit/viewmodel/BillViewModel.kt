@@ -34,4 +34,16 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         _bills.value = updated
         BillStorage.saveBills(context, updated)
     }
+
+    fun getBillById(id: Long): Bill? {
+        return _bills.value.find { it.id == id }
+    }
+
+    fun updateBill(updatedBill: Bill) {
+        val updated = _bills.value.map {
+            if (it.id == updatedBill.id) updatedBill else it
+        }
+        _bills.value = updated
+        BillStorage.saveBills(context, updated)
+    }
 }

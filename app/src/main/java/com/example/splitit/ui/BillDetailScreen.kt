@@ -14,13 +14,15 @@ import com.example.splitit.data.Bill
 import com.example.splitit.viewmodel.BillViewModel
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillDetailScreen(
     bill: Bill,
     viewModel: BillViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onEditBill: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -52,6 +54,9 @@ fun BillDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onEditBill) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    }
                     IconButton(onClick = { shareBill(context, bill) }) {
                         Icon(Icons.Default.Share, contentDescription = "Share")
                     }
