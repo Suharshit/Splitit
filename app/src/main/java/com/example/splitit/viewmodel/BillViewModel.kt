@@ -46,4 +46,10 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         _bills.value = updated
         BillStorage.saveBills(context, updated)
     }
+
+    fun restoreBill(bill: Bill) {
+        val restored = (_bills.value + bill).sortedByDescending { it.id }
+        _bills.value = restored
+        BillStorage.saveBills(context, restored)
+    }
 }

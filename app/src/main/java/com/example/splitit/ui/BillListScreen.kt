@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.splitit.data.Bill
 import com.example.splitit.viewmodel.BillViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +26,8 @@ fun BillListScreen(
     onBillClick: (Long) -> Unit
 ) {
     val bills by viewModel.bills.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -33,7 +37,8 @@ fun BillListScreen(
             FloatingActionButton(onClick = onAddBill) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Bill")
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         if (bills.isEmpty()) {
             Box(
@@ -63,6 +68,16 @@ fun BillListScreen(
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
                                 viewModel.deleteBill(bill)
+                                scope.launch {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = "\"${bill.title}\" deleted",
+                                        actionLabel = "Undo",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        viewModel.restoreBill(bill)
+                                    }
+                                }
                                 true
                             } else false
                         }
