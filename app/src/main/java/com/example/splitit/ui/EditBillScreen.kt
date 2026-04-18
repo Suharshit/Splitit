@@ -28,7 +28,12 @@ fun EditBillScreen(
     onNavigateBack: () -> Unit
 ) {
     var title by remember { mutableStateOf(bill.title) }
-    var totalAmount by remember { mutableStateOf(bill.totalAmount.toString()) }
+    var totalAmountRaw by remember {
+        mutableStateOf(bill.totalAmount.toString())
+    }
+    var totalAmountDisplay by remember {
+        mutableStateOf(formatAmountEdit(bill.totalAmount.toString()))
+    }
     var people by remember {
         mutableStateOf(
             bill.peopleNames.ifEmpty {
@@ -85,20 +90,28 @@ fun EditBillScreen(
 
             item {
                 OutlinedTextField(
-                    value = totalAmount,
-                    onValueChange = { totalAmount = it; amountError = false },
+                    value = totalAmountDisplay,
+                    onValueChange = { input ->
+                        val raw = parseAmountEdit(input)
+                        if (raw.isEmpty() || raw.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                            totalAmountRaw = raw
+                            totalAmountDisplay = if (raw.isEmpty()) "" else formatAmountEdit(raw)
+                            amountError = false
+                        }
+                    },
                     label = { Text("Total amount (₹)") },
                     isError = amountError,
                     supportingText = { if (amountError) Text("Enter a valid amount") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    prefix = { Text("₹") }
                 )
             }
 
             // Live split preview
             item {
-                val amount = totalAmount.toDoubleOrNull()
+                val amount = totalAmountRaw.toDoubleOrNull()
                 val validPeople = people.filter { it.isNotBlank() }
                 if (amount != null && amount > 0 && validPeople.isNotEmpty()) {
                     Card(
@@ -183,7 +196,7 @@ fun EditBillScreen(
             item {
                 Button(
                     onClick = {
-                        val parsedAmount = totalAmount.toDoubleOrNull()
+                        val parsedAmount = totalAmountRaw.toDoubleOrNull()
                         val validNames = people.filter { it.isNotBlank() }
                         titleError = title.isBlank()
                         amountError = parsedAmount == null || parsedAmount <= 0
@@ -212,4 +225,21 @@ fun EditBillScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
+}
+
+fun formatAmountEdit(input: String): String {
+    val digits = input.filter { it.isDigit() || it == '.' }
+    val parts = digits.split(".")
+    val intPart = parts[0].trimStart('0').ifEmpty { "0" }
+    val formatted = try {
+        val number = intPart.toLong()
+        "%,d".format(number)
+    } catch (e: Exception) {
+        intPart
+    }
+    return if (parts.size > 1) "$formatted.${parts[1].take(2)}" else formatted
+}
+
+fun parseAmountEdit(formatted: String): String {
+    return formatted.replace(",", "")
 }
