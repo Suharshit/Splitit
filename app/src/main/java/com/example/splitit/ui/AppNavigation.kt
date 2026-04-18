@@ -10,12 +10,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val viewModel: BillViewModel = viewModel()
     var scrollToTop by remember { mutableStateOf(false) }
+    val bills by viewModel.bills.collectAsState()
 
     NavHost(navController = navController, startDestination = "bill_list") {
         composable("bill_list") {
@@ -38,7 +40,7 @@ fun AppNavigation() {
         }
         composable("bill_detail/{billId}") { backStackEntry ->
             val billId = backStackEntry.arguments?.getString("billId")?.toLongOrNull()
-            val bill = viewModel.bills.value.find { it.id == billId }
+            val bill = bills.find { it.id == billId }
             if (bill != null) {
                 BillDetailScreen(
                     bill = bill,
@@ -50,7 +52,7 @@ fun AppNavigation() {
         }
         composable("edit_bill/{billId}") { backStackEntry ->
             val billId = backStackEntry.arguments?.getString("billId")?.toLongOrNull()
-            val bill = viewModel.bills.value.find { it.id == billId }
+            val bill = bills.find { it.id == billId }
             if (bill != null) {
                 EditBillScreen(
                     bill = bill,
