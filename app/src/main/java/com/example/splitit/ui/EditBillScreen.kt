@@ -43,9 +43,7 @@ fun EditBillScreen(
     }
     var titleError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
-    var peopleError by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
         topBar = {
@@ -143,13 +141,6 @@ fun EditBillScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("People", style = MaterialTheme.typography.titleMedium)
-                    if (peopleError) {
-                        Text(
-                            "Add at least 1 name",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
                 }
             }
 
@@ -162,7 +153,6 @@ fun EditBillScreen(
                         value = name,
                         onValueChange = {
                             people = people.toMutableList().also { list -> list[index] = it }
-                            peopleError = false
                         },
                         label = { Text("Person ${index + 1}") },
                         modifier = Modifier.weight(1f),
@@ -197,18 +187,22 @@ fun EditBillScreen(
                 Button(
                     onClick = {
                         val parsedAmount = totalAmountRaw.toDoubleOrNull()
-                        val validNames = people.filter { it.isNotBlank() }
+
+                        // Auto-fill blank names instead of rejecting
+                        val filledNames = people.mapIndexed { index, name ->
+                            name.ifBlank { "Person ${index + 1}" }
+                        }
+
                         titleError = title.isBlank()
                         amountError = parsedAmount == null || parsedAmount <= 0
-                        peopleError = validNames.isEmpty()
 
-                        if (!titleError && !amountError && !peopleError) {
+                        if (!titleError && !amountError) {
                             viewModel.updateBill(
                                 bill.copy(
                                     title = title.trim(),
                                     totalAmount = parsedAmount!!,
-                                    numberOfPeople = validNames.size,
-                                    peopleNames = validNames
+                                    numberOfPeople = filledNames.size,
+                                    peopleNames = filledNames
                                 )
                             )
                             onNavigateBack()
