@@ -6,24 +6,34 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.splitit.viewmodel.BillViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val viewModel: BillViewModel = viewModel()
+    var scrollToTop by remember { mutableStateOf(false) }
 
     NavHost(navController = navController, startDestination = "bill_list") {
         composable("bill_list") {
             BillListScreen(
                 viewModel = viewModel,
                 onAddBill = { navController.navigate("add_bill") },
-                onBillClick = { billId -> navController.navigate("bill_detail/$billId") }
+                onBillClick = { billId -> navController.navigate("bill_detail/$billId") },
+                scrollToTop = scrollToTop,
+                onScrollToTopDone = { scrollToTop = false }
             )
         }
         composable("add_bill") {
             AddBillScreen(
                 viewModel = viewModel,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = {
+                    scrollToTop = true
+                    navController.popBackStack()
+                }
             )
         }
         composable("bill_detail/{billId}") { backStackEntry ->

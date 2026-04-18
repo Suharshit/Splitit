@@ -17,21 +17,42 @@ import androidx.compose.ui.unit.dp
 import com.example.splitit.data.Bill
 import com.example.splitit.viewmodel.BillViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillListScreen(
     viewModel: BillViewModel,
     onAddBill: () -> Unit,
-    onBillClick: (Long) -> Unit
+    onBillClick: (Long) -> Unit,
+    scrollToTop: Boolean = false,
+    onScrollToTopDone: () -> Unit = {}
 ) {
     val bills by viewModel.bills.collectAsState()
+    val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("SplitIt") })
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = "SplitIt",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        if (bills.isNotEmpty()) {
+                            Text(
+                                text = "${bills.size} ${if (bills.size == 1) "bill" else "bills"} · ₹${"%.2f".format(bills.sumOf { it.totalAmount })} total",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddBill) {
@@ -62,7 +83,10 @@ fun BillListScreen(
                 }
             }
         } else {
-            LazyColumn(modifier = Modifier.padding(padding)) {
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                state = listState,
+            ) {
                 items(bills, key = { it.id }) { bill ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
