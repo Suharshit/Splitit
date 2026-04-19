@@ -17,26 +17,17 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         _bills.value = BillStorage.loadBills(context)
     }
 
-    fun addBill(title: String, total: Double, names: List<String>) {
+    fun addBill(title: String, total: Double, names: List<String>, customAmounts: List<Double> = emptyList()) {
         val newBill = Bill(
             title = title,
             totalAmount = total,
             numberOfPeople = names.size,
-            peopleNames = names
+            peopleNames = names,
+            customAmounts = customAmounts
         )
         val updated = listOf(newBill) + _bills.value
         _bills.value = updated
         BillStorage.saveBills(context, updated)
-    }
-
-    fun deleteBill(bill: Bill) {
-        val updated = _bills.value.filter { it.id != bill.id }
-        _bills.value = updated
-        BillStorage.saveBills(context, updated)
-    }
-
-    fun getBillById(id: Long): Bill? {
-        return _bills.value.find { it.id == id }
     }
 
     fun updateBill(updatedBill: Bill) {
@@ -47,9 +38,19 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         BillStorage.saveBills(context, updated)
     }
 
+    fun deleteBill(bill: Bill) {
+        val updated = _bills.value.filter { it.id != bill.id }
+        _bills.value = updated
+        BillStorage.saveBills(context, updated)
+    }
+
     fun restoreBill(bill: Bill) {
         val restored = (_bills.value + bill).sortedByDescending { it.id }
         _bills.value = restored
         BillStorage.saveBills(context, restored)
+    }
+
+    fun getBillById(id: Long): Bill? {
+        return _bills.value.find { it.id == id }
     }
 }

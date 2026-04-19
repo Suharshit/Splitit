@@ -141,7 +141,7 @@ fun BillDetailScreen(
                             Text(personName, style = MaterialTheme.typography.bodyLarge)
                         }
                         Text(
-                            "₹${"%.2f".format(bill.amountPerPerson)}",
+                            "₹${"%.2f".format(bill.amountFor(index))}",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )

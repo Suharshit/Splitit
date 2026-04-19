@@ -12,12 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.splitit.viewmodel.BillViewModel
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,13 +25,27 @@ fun AddBillScreen(
     onNavigateBack: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
-    var people by remember { mutableStateOf(listOf("", "")) }
-    var titleError by remember { mutableStateOf(false) }
-    var amountError by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
     var totalAmountDisplay by remember { mutableStateOf("") }
     var totalAmountRaw by remember { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
+    var people by remember { mutableStateOf(listOf("", "")) }
+    var isEqualSplit by remember { mutableStateOf(true) }
+    var customAmounts by remember { mutableStateOf(listOf("", "")) }
+    var titleError by remember { mutableStateOf(false) }
+    var amountError by remember { mutableStateOf(false) }
+    var customAmountError by remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    // Keep customAmounts list size in sync with people list
+    LaunchedEffect(people.size) {
+        customAmounts = List(people.size) { customAmounts.getOrElse(it) { "" } }
+    }
+
+    val totalParsed = totalAmountRaw.toDoubleOrNull() ?: 0.0
+    val customTotal = customAmounts.sumOf { it.toDoubleOrNull() ?: 0.0 }
+    val remaining = totalParsed - customTotal
 
     Scaffold(
         topBar = {
@@ -64,12 +77,9 @@ fun AddBillScreen(
                     supportingText = { if (titleError) Text("Title cannot be empty") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .focusRequester(focusRequester),   // ← add this
+                        .focusRequester(focusRequester),
                     singleLine = true
                 )
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
-                }
             }
 
             item {
@@ -83,7 +93,7 @@ fun AddBillScreen(
                             amountError = false
                         }
                     },
-                    label = { Text("Total amount (₹)") },
+                    label = { Text("Total amount") },
                     isError = amountError,
                     supportingText = { if (amountError) Text("Enter a valid amount") },
                     modifier = Modifier.fillMaxWidth(),
@@ -93,27 +103,81 @@ fun AddBillScreen(
                 )
             }
 
-            // Live split preview
+            // Split type toggle
             item {
-                val amount = totalAmountRaw.toDoubleOrNull()
-                val validPeople = people.filter { it.isNotBlank() }
-                if (amount != null && amount > 0 && validPeople.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = isEqualSplit,
+                        onClick = { isEqualSplit = true },
+                        label = { Text("Equal split") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = !isEqualSplit,
+                        onClick = { isEqualSplit = false },
+                        label = { Text("Custom split") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            // Equal split preview
+            if (isEqualSplit) {
+                item {
+                    val validPeople = people.filter { it.isNotBlank() }
+                    if (totalParsed > 0 && validPeople.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    "Each person pays",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    "₹${"%.2f".format(totalParsed / validPeople.size)}",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Custom split remaining indicator
+            if (!isEqualSplit && totalParsed > 0) {
+                item {
+                    val remainingColor = when {
+                        remaining < 0 -> MaterialTheme.colorScheme.error
+                        remaining == 0.0 -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Remaining to assign",
+                                style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "Each person pays",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                "₹${"%.2f".format(amount / validPeople.size)}",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                "₹${"%.2f".format(remaining)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = remainingColor
                             )
                         }
                     }
@@ -127,6 +191,13 @@ fun AddBillScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("People", style = MaterialTheme.typography.titleMedium)
+                    if (customAmountError) {
+                        Text(
+                            "Amounts don't add up to total",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
 
@@ -141,12 +212,28 @@ fun AddBillScreen(
                             people = people.toMutableList().also { list -> list[index] = it }
                         },
                         label = { Text("Person ${index + 1}") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(if (isEqualSplit) 1f else 0.5f),
                         singleLine = true
                     )
+                    if (!isEqualSplit) {
+                        OutlinedTextField(
+                            value = customAmounts.getOrElse(index) { "" },
+                            onValueChange = { input ->
+                                val raw = input.filter { it.isDigit() || it == '.' }
+                                customAmounts = customAmounts.toMutableList()
+                                    .also { list -> list[index] = raw }
+                                customAmountError = false
+                            },
+                            label = { Text("₹ Amount") },
+                            modifier = Modifier.weight(0.5f),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                        )
+                    }
                     if (people.size > 1) {
                         IconButton(onClick = {
                             people = people.toMutableList().also { it.removeAt(index) }
+                            customAmounts = customAmounts.toMutableList().also { it.removeAt(index) }
                         }) {
                             Icon(
                                 Icons.Default.Close,
@@ -160,7 +247,10 @@ fun AddBillScreen(
 
             item {
                 OutlinedButton(
-                    onClick = { people = people + "" },
+                    onClick = {
+                        people = people + ""
+                        customAmounts = customAmounts + ""
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
@@ -173,20 +263,29 @@ fun AddBillScreen(
                 Button(
                     onClick = {
                         val parsedAmount = totalAmountRaw.toDoubleOrNull()
-
-                        // Auto-fill blank names instead of rejecting
                         val filledNames = people.mapIndexed { index, name ->
                             name.ifBlank { "Person ${index + 1}" }
                         }
-
                         titleError = title.isBlank()
                         amountError = parsedAmount == null || parsedAmount <= 0
 
-                        if (!titleError && !amountError) {
+                        if (!isEqualSplit) {
+                            val customParsed = customAmounts.map { it.toDoubleOrNull() ?: 0.0 }
+                            val sum = customParsed.sum()
+                            customAmountError = parsedAmount != null &&
+                                    Math.abs(sum - parsedAmount) > 0.01
+                        }
+
+                        if (!titleError && !amountError && !customAmountError) {
+                            val finalAmounts = if (!isEqualSplit)
+                                customAmounts.map { it.toDoubleOrNull() ?: 0.0 }
+                            else emptyList()
+
                             viewModel.addBill(
                                 title = title.trim(),
                                 total = parsedAmount!!,
-                                names = filledNames
+                                names = filledNames,
+                                customAmounts = finalAmounts
                             )
                             onNavigateBack()
                         }
@@ -209,14 +308,9 @@ fun formatAmount(input: String): String {
     val parts = digits.split(".")
     val intPart = parts[0].trimStart('0').ifEmpty { "0" }
     val formatted = try {
-        val number = intPart.toLong()
-        "%,d".format(number)
-    } catch (e: Exception) {
-        intPart
-    }
+        "%,d".format(intPart.toLong())
+    } catch (e: Exception) { intPart }
     return if (parts.size > 1) "$formatted.${parts[1].take(2)}" else formatted
 }
 
-fun parseAmount(formatted: String): String {
-    return formatted.replace(",", "")
-}
+fun parseAmount(formatted: String): String = formatted.replace(",", "")
