@@ -32,7 +32,8 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         total: Double,
         names: List<String>,
         customAmounts: List<Double> = emptyList(),
-        category: BillCategory = BillCategory.OTHER
+        category: BillCategory = BillCategory.OTHER,
+        notes: String = ""
     ) {
         val newBill = Bill(
             title = title,
@@ -40,7 +41,8 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
             numberOfPeople = names.size,
             peopleNames = names,
             customAmounts = customAmounts,
-            category = category
+            category = category,
+            notes = notes
         )
         val updated = listOf(newBill) + _bills.value
         _bills.value = updated

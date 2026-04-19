@@ -26,6 +26,7 @@ object BillStorage {
             obj.put("paidStatus", paidArray)
             array.put(obj)            // ← moved to after all fields are added
             obj.put("category", bill.category.name)
+            obj.put("notes", bill.notes)
         }
         context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(array.toString().toByteArray())
@@ -60,6 +61,7 @@ object BillStorage {
                 } catch (e: Exception) {
                     BillCategory.OTHER
                 }
+                val notes = obj.optString("notes", "")
                 bills.add(
                     Bill(
                         id = obj.getLong("id"),

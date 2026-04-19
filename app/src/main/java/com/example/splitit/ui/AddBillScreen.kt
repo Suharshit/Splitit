@@ -35,6 +35,7 @@ fun AddBillScreen(
     var amountError by remember { mutableStateOf(false) }
     var customAmountError by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(BillCategory.OTHER) }
+    var notes by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val currency by viewModel.currency.collectAsState()
 
@@ -269,6 +270,18 @@ fun AddBillScreen(
             }
 
             item {
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Notes (optional)") },
+                    placeholder = { Text("e.g. Anniversary dinner, Goa trip...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 4
+                )
+            }
+
+            item {
                 Button(
                     onClick = {
                         val parsedAmount = totalAmountRaw.toDoubleOrNull()
@@ -295,7 +308,8 @@ fun AddBillScreen(
                                 total = parsedAmount!!,
                                 names = filledNames,
                                 customAmounts = finalAmounts,
-                                category = selectedCategory    // ← add this
+                                category = selectedCategory,
+                                notes = notes.trim()
                             )
                             onNavigateBack()
                         }
