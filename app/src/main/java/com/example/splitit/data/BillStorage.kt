@@ -21,7 +21,10 @@ object BillStorage {
             val amountsArray = JSONArray()
             bill.customAmounts.forEach { amountsArray.put(it) }
             obj.put("customAmounts", amountsArray)
-            array.put(obj)
+            val paidArray = JSONArray()
+            bill.paidStatus.forEach { paidArray.put(it) }
+            obj.put("paidStatus", paidArray)
+            array.put(obj)            // ← moved to after all fields are added
         }
         context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(array.toString().toByteArray())
@@ -45,6 +48,11 @@ object BillStorage {
                 if (amountsArray != null) {
                     for (j in 0 until amountsArray.length()) amounts.add(amountsArray.getDouble(j))
                 }
+                val paidArray = obj.optJSONArray("paidStatus")
+                val paid = mutableListOf<Boolean>()
+                if (paidArray != null) {
+                    for (j in 0 until paidArray.length()) paid.add(paidArray.getBoolean(j))
+                }
                 bills.add(
                     Bill(
                         id = obj.getLong("id"),
@@ -52,7 +60,8 @@ object BillStorage {
                         totalAmount = obj.getDouble("totalAmount"),
                         numberOfPeople = obj.getInt("numberOfPeople"),
                         peopleNames = names,
-                        customAmounts = amounts
+                        customAmounts = amounts,
+                        paidStatus = paid        // ← was missing
                     )
                 )
             }

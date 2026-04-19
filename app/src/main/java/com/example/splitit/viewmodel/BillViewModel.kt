@@ -53,4 +53,11 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
     fun getBillById(id: Long): Bill? {
         return _bills.value.find { it.id == id }
     }
+
+    fun togglePaid(bill: Bill, personIndex: Int) {
+        val currentStatus = MutableList(bill.numberOfPeople) { bill.isPaid(it) }
+        currentStatus[personIndex] = !currentStatus[personIndex]
+        val updatedBill = bill.copy(paidStatus = currentStatus)
+        updateBill(updatedBill)
+    }
 }
