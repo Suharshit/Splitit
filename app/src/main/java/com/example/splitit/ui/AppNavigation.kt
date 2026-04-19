@@ -25,6 +25,7 @@ fun AppNavigation() {
                 viewModel = viewModel,
                 onAddBill = { navController.navigate("add_bill") },
                 onBillClick = { billId -> navController.navigate("bill_detail/$billId") },
+                onOpenSettings = { navController.navigate("settings") },
                 scrollToTop = scrollToTop,
                 onScrollToTopDone = { scrollToTop = false }
             )
@@ -60,6 +61,12 @@ fun AppNavigation() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+        }
+        composable("settings") {
+            SettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -19,6 +19,7 @@ import com.example.splitit.viewmodel.BillViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +27,7 @@ fun BillListScreen(
     viewModel: BillViewModel,
     onAddBill: () -> Unit,
     onBillClick: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     scrollToTop: Boolean = false,
     onScrollToTopDone: () -> Unit = {}
 ) {
@@ -33,6 +35,7 @@ fun BillListScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val currency by viewModel.currency.collectAsState()
 
     Scaffold(
         topBar = {
@@ -45,11 +48,16 @@ fun BillListScreen(
                         )
                         if (bills.isNotEmpty()) {
                             Text(
-                                text = "${bills.size} ${if (bills.size == 1) "bill" else "bills"} · ₹${"%.2f".format(bills.sumOf { it.totalAmount })} total",
+                                text = "${bills.size} ${if (bills.size == 1) "bill" else "bills"} · ${currency}${"%.2f".format(bills.sumOf { it.totalAmount })} total",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )
@@ -138,27 +146,80 @@ fun BillListScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
                         ) {
-                            ListItem(
-                                headlineContent = {
-                                    Text(bill.title, style = MaterialTheme.typography.titleMedium)
-                                },
-                                supportingContent = {
-                                    Text("${bill.numberOfPeople} people")
-                                },
-                                trailingContent = {
-                                    Column(horizontalAlignment = Alignment.End) {
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                ListItem(
+                                    leadingContent = {
+                                        Surface(
+                                            shape = MaterialTheme.shapes.small,
+                                            modifier = Modifier.size(40.dp),
+                                            color = MaterialTheme.colorScheme.secondaryContainer
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Text(
+                                                    bill.category.emoji,
+                                                    style = MaterialTheme.typography.titleMedium
+                                                )
+                                            }
+                                        }
+                                    },
+                                    headlineContent = {
+                                        Text(bill.title, style = MaterialTheme.typography.titleMedium)
+                                    },
+                                    supportingContent = {
+                                        Text("${bill.category.label} · ${bill.numberOfPeople} people")
+                                    },
+                                    trailingContent = {
+                                        Column(
+                                            horizontalAlignment = Alignment.End,
+                                            modifier = Modifier.padding(top = 20.dp)
+                                        ) {
+                                            Text(
+                                                "$currency${"%.2f".format(bill.totalAmount)}",
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                            Text(
+                                                "$currency${"%.2f".format(bill.amountPerPerson)} each",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                )
+
+                                // Payment status badge — top right corner
+                                val paidCount = bill.paidCount
+                                val total = bill.numberOfPeople
+                                val allPaid = bill.allPaid
+
+                                if (total > 0) {
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        color = when {
+                                            allPaid -> MaterialTheme.colorScheme.primaryContainer
+                                            paidCount > 0 -> MaterialTheme.colorScheme.tertiaryContainer
+                                            else -> MaterialTheme.colorScheme.errorContainer
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(top = 8.dp, end = 8.dp)
+                                    ) {
                                         Text(
-                                            "₹${"%.2f".format(bill.totalAmount)}",
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        Text(
-                                            "₹${"%.2f".format(bill.amountPerPerson)} each",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary
+                                            text = when {
+                                                allPaid -> "Settled"
+                                                paidCount > 0 -> "$paidCount/$total paid"
+                                                else -> "Unpaid"
+                                            },
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = when {
+                                                allPaid -> MaterialTheme.colorScheme.onPrimaryContainer
+                                                paidCount > 0 -> MaterialTheme.colorScheme.onTertiaryContainer
+                                                else -> MaterialTheme.colorScheme.onErrorContainer
+                                            },
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                                         )
                                     }
                                 }
-                            )
+                            }
                         }
                     }
                     HorizontalDivider()

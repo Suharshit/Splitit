@@ -18,7 +18,15 @@ object BillStorage {
             val namesArray = JSONArray()
             bill.peopleNames.forEach { namesArray.put(it) }
             obj.put("peopleNames", namesArray)
-            array.put(obj)
+            val amountsArray = JSONArray()
+            bill.customAmounts.forEach { amountsArray.put(it) }
+            obj.put("customAmounts", amountsArray)
+            val paidArray = JSONArray()
+            bill.paidStatus.forEach { paidArray.put(it) }
+            obj.put("paidStatus", paidArray)
+            array.put(obj)            // ← moved to after all fields are added
+            obj.put("category", bill.category.name)
+            obj.put("notes", bill.notes)
         }
         context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(array.toString().toByteArray())
@@ -35,17 +43,35 @@ object BillStorage {
                 val namesArray = obj.optJSONArray("peopleNames")
                 val names = mutableListOf<String>()
                 if (namesArray != null) {
-                    for (j in 0 until namesArray.length()) {
-                        names.add(namesArray.getString(j))
-                    }
+                    for (j in 0 until namesArray.length()) names.add(namesArray.getString(j))
                 }
+                val amountsArray = obj.optJSONArray("customAmounts")
+                val amounts = mutableListOf<Double>()
+                if (amountsArray != null) {
+                    for (j in 0 until amountsArray.length()) amounts.add(amountsArray.getDouble(j))
+                }
+                val paidArray = obj.optJSONArray("paidStatus")
+                val paid = mutableListOf<Boolean>()
+                if (paidArray != null) {
+                    for (j in 0 until paidArray.length()) paid.add(paidArray.getBoolean(j))
+                }
+                val categoryName = obj.optString("category", BillCategory.OTHER.name)
+                val category = try {
+                    BillCategory.valueOf(categoryName)
+                } catch (e: Exception) {
+                    BillCategory.OTHER
+                }
+                val notes = obj.optString("notes", "")
                 bills.add(
                     Bill(
                         id = obj.getLong("id"),
                         title = obj.getString("title"),
                         totalAmount = obj.getDouble("totalAmount"),
                         numberOfPeople = obj.getInt("numberOfPeople"),
-                        peopleNames = names
+                        peopleNames = names,
+                        customAmounts = amounts,
+                        paidStatus = paid,
+                        category = category
                     )
                 )
             }

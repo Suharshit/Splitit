@@ -2,19 +2,20 @@ package com.example.splitit.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.splitit.data.Bill
 import com.example.splitit.viewmodel.BillViewModel
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.filled.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +27,7 @@ fun BillDetailScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val currency by viewModel.currency.collectAsState()
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -89,31 +91,117 @@ fun BillDetailScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            "₹${"%.2f".format(bill.totalAmount)}",
+                            "$currency${"%.2f".format(bill.totalAmount)}",
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Split between ${bill.numberOfPeople} people",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Split between ${bill.numberOfPeople} people",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            // Paid progress
+                            Text(
+                                "${bill.paidCount}/${bill.numberOfPeople} paid",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (bill.allPaid)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        if (bill.numberOfPeople > 0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { bill.paidCount.toFloat() / bill.numberOfPeople },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(bill.category.emoji)
+                            Text(
+                                bill.category.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
             }
 
             item {
-                Text(
-                    "Each person owes",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                if (bill.notes.isNotBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Notes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                bill.notes,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Each person owes",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    if (bill.allPaid) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                "All settled",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
 
             items(bill.numberOfPeople) { index ->
                 val personName = bill.peopleNames.getOrElse(index) { "Person ${index + 1}" }
-                Card(modifier = Modifier.fillMaxWidth()) {
+                val isPaid = bill.isPaid(index)
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isPaid)
+                            MaterialTheme.colorScheme.surfaceVariant
+                        else
+                            MaterialTheme.colorScheme.surface
+                    )
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -123,31 +211,66 @@ fun BillDetailScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Surface(
                                 shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                color = if (isPaid)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.secondaryContainer,
                                 modifier = Modifier.size(36.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
                                         personName.take(1).uppercase(),
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        color = if (isPaid)
+                                            MaterialTheme.colorScheme.onPrimary
+                                        else
+                                            MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             }
-                            Text(personName, style = MaterialTheme.typography.bodyLarge)
+                            Column {
+                                Text(
+                                    personName,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                if (isPaid) {
+                                    Text(
+                                        "Paid",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
                         }
-                        Text(
-                            "₹${"%.2f".format(bill.amountPerPerson)}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "$currency${"%.2f".format(bill.amountFor(index))}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isPaid)
+                                    MaterialTheme.colorScheme.outline
+                                else
+                                    MaterialTheme.colorScheme.primary
+                            )
+                            Checkbox(
+                                checked = isPaid,
+                                onCheckedChange = {
+                                    viewModel.togglePaid(bill, index)
+                                }
+                            )
+                        }
                     }
                 }
             }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }

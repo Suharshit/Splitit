@@ -44,6 +44,7 @@ fun EditBillScreen(
     var titleError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+    var notes by remember { mutableStateOf(bill.notes) }
 
     Scaffold(
         topBar = {
@@ -202,7 +203,8 @@ fun EditBillScreen(
                                     title = title.trim(),
                                     totalAmount = parsedAmount!!,
                                     numberOfPeople = filledNames.size,
-                                    peopleNames = filledNames
+                                    peopleNames = filledNames,
+                                    notes = notes.trim()
                                 )
                             )
                             onNavigateBack()
