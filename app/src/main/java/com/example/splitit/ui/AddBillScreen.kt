@@ -36,6 +36,7 @@ fun AddBillScreen(
     var customAmountError by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(BillCategory.OTHER) }
     val focusRequester = remember { FocusRequester() }
+    val currency by viewModel.currency.collectAsState()
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -100,7 +101,7 @@ fun AddBillScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    prefix = { Text("₹") }
+                    prefix = { Text(currency) }
                 )
             }
 
@@ -143,7 +144,7 @@ fun AddBillScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    "₹${"%.2f".format(totalParsed / validPeople.size)}",
+                                    "$currency${"%.2f".format(totalParsed / validPeople.size)}",
                                     style = MaterialTheme.typography.headlineMedium,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
@@ -176,7 +177,7 @@ fun AddBillScreen(
                             Text("Remaining to assign",
                                 style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "₹${"%.2f".format(remaining)}",
+                                "$currency${"%.2f".format(remaining)}",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = remainingColor
                             )
@@ -232,8 +233,8 @@ fun AddBillScreen(
                                     .also { list -> list[index] = raw }
                                 customAmountError = false
                             },
-                            label = { Text("₹ Amount") },
                             modifier = Modifier.weight(0.5f),
+                            label = { Text("$currency Amount") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                         )

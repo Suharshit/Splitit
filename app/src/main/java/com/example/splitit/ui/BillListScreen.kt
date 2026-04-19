@@ -19,6 +19,7 @@ import com.example.splitit.viewmodel.BillViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +27,7 @@ fun BillListScreen(
     viewModel: BillViewModel,
     onAddBill: () -> Unit,
     onBillClick: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     scrollToTop: Boolean = false,
     onScrollToTopDone: () -> Unit = {}
 ) {
@@ -33,6 +35,7 @@ fun BillListScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val currency by viewModel.currency.collectAsState()
 
     Scaffold(
         topBar = {
@@ -45,11 +48,16 @@ fun BillListScreen(
                         )
                         if (bills.isNotEmpty()) {
                             Text(
-                                text = "${bills.size} ${if (bills.size == 1) "bill" else "bills"} · ₹${"%.2f".format(bills.sumOf { it.totalAmount })} total",
+                                text = "${bills.size} ${if (bills.size == 1) "bill" else "bills"} · ${currency}${"%.2f".format(bills.sumOf { it.totalAmount })} total",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )
@@ -162,11 +170,11 @@ fun BillListScreen(
                                 trailingContent = {
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
-                                            "₹${"%.2f".format(bill.totalAmount)}",
+                                            "$currency${"%.2f".format(bill.totalAmount)}",
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                         Text(
-                                            "₹${"%.2f".format(bill.amountPerPerson)} each",
+                                            "$currency${"%.2f".format(bill.amountPerPerson)} each",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.primary
                                         )

@@ -27,6 +27,7 @@ fun BillDetailScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val currency by viewModel.currency.collectAsState()
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -90,7 +91,7 @@ fun BillDetailScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            "₹${"%.2f".format(bill.totalAmount)}",
+                            "$currency${"%.2f".format(bill.totalAmount)}",
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -226,7 +227,7 @@ fun BillDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                "₹${"%.2f".format(bill.amountFor(index))}",
+                                "$currency${"%.2f".format(bill.amountFor(index))}",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (isPaid)
                                     MaterialTheme.colorScheme.outline

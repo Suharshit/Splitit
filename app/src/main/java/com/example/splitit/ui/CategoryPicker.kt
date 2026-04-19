@@ -22,33 +22,38 @@ fun CategoryPicker(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(4),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.height(120.dp)
-        ) {
-            items(BillCategory.entries) { category ->
-                val isSelected = category == selected
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onCategorySelected(category) },
-                    label = {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(category.emoji, style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                category.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+        val categories = BillCategory.entries.chunked(4)
+        categories.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowItems.forEach { category ->
+                    val isSelected = category == selected
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onCategorySelected(category) },
+                        label = {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    category.emoji,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    category.label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1
+                                )
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
