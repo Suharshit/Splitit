@@ -7,7 +7,8 @@ data class Bill(
     val numberOfPeople: Int,
     val peopleNames: List<String> = emptyList(),
     val customAmounts: List<Double> = emptyList(),
-    val paidStatus: List<Boolean> = emptyList()
+    val paidStatus: List<Boolean> = emptyList(),
+    val category: BillCategory = BillCategory.OTHER
 ) {
     val amountPerPerson: Double
         get() = if (numberOfPeople > 0) totalAmount / numberOfPeople else 0.0

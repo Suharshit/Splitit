@@ -6,6 +6,7 @@ import com.example.splitit.data.Bill
 import com.example.splitit.data.BillStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.example.splitit.data.BillCategory
 
 class BillViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application.applicationContext
@@ -17,13 +18,20 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         _bills.value = BillStorage.loadBills(context)
     }
 
-    fun addBill(title: String, total: Double, names: List<String>, customAmounts: List<Double> = emptyList()) {
+    fun addBill(
+        title: String,
+        total: Double,
+        names: List<String>,
+        customAmounts: List<Double> = emptyList(),
+        category: BillCategory = BillCategory.OTHER
+    ) {
         val newBill = Bill(
             title = title,
             totalAmount = total,
             numberOfPeople = names.size,
             peopleNames = names,
-            customAmounts = customAmounts
+            customAmounts = customAmounts,
+            category = category
         )
         val updated = listOf(newBill) + _bills.value
         _bills.value = updated

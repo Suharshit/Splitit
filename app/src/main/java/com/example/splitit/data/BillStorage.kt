@@ -25,6 +25,7 @@ object BillStorage {
             bill.paidStatus.forEach { paidArray.put(it) }
             obj.put("paidStatus", paidArray)
             array.put(obj)            // ← moved to after all fields are added
+            obj.put("category", bill.category.name)
         }
         context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(array.toString().toByteArray())
@@ -53,6 +54,12 @@ object BillStorage {
                 if (paidArray != null) {
                     for (j in 0 until paidArray.length()) paid.add(paidArray.getBoolean(j))
                 }
+                val categoryName = obj.optString("category", BillCategory.OTHER.name)
+                val category = try {
+                    BillCategory.valueOf(categoryName)
+                } catch (e: Exception) {
+                    BillCategory.OTHER
+                }
                 bills.add(
                     Bill(
                         id = obj.getLong("id"),
@@ -61,7 +68,8 @@ object BillStorage {
                         numberOfPeople = obj.getInt("numberOfPeople"),
                         peopleNames = names,
                         customAmounts = amounts,
-                        paidStatus = paid        // ← was missing
+                        paidStatus = paid,
+                        category = category
                     )
                 )
             }

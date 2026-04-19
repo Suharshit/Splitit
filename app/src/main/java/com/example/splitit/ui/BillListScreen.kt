@@ -139,11 +139,25 @@ fun BillListScreen(
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
                         ) {
                             ListItem(
+                                leadingContent = {
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        modifier = Modifier.size(40.dp),
+                                        color = bill.category.color.copy(alpha = 0.2f)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(
+                                                bill.category.emoji,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
+                                },
                                 headlineContent = {
                                     Text(bill.title, style = MaterialTheme.typography.titleMedium)
                                 },
                                 supportingContent = {
-                                    Text("${bill.numberOfPeople} people")
+                                    Text("${bill.category.label} · ${bill.numberOfPeople} people")
                                 },
                                 trailingContent = {
                                     Column(horizontalAlignment = Alignment.End) {

@@ -17,6 +17,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.splitit.viewmodel.BillViewModel
+import com.example.splitit.data.BillCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +34,7 @@ fun AddBillScreen(
     var titleError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
     var customAmountError by remember { mutableStateOf(false) }
-
+    var selectedCategory by remember { mutableStateOf(BillCategory.OTHER) }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -201,6 +202,13 @@ fun AddBillScreen(
                 }
             }
 
+            item {
+                CategoryPicker(
+                    selected = selectedCategory,
+                    onCategorySelected = { selectedCategory = it }
+                )
+            }
+
             itemsIndexed(people) { index, name ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -285,7 +293,8 @@ fun AddBillScreen(
                                 title = title.trim(),
                                 total = parsedAmount!!,
                                 names = filledNames,
-                                customAmounts = finalAmounts
+                                customAmounts = finalAmounts,
+                                category = selectedCategory    // ← add this
                             )
                             onNavigateBack()
                         }

@@ -121,6 +121,18 @@ fun BillDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(bill.category.emoji)
+                            Text(
+                                bill.category.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
             }
